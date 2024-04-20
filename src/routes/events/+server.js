@@ -19,13 +19,32 @@ const CAT_QUOTES = [
 ]
 
 /**
- *
+ * @type {Array<string>}
+ */
+const FRASI_GATTO = [
+  '"I gatti sono intenditori del comfort." - James Herriot',
+  '"Guardare i miei gatti può farmi felice." - Paula Cole',
+  '"Non sono sicuro del perché mi piacciano così tanto i gatti. Voglio dire, sono ovviamente molto carini. Sono sia selvatici che domestici allo stesso tempo." - Michael Showalter',
+  '"Non puoi guardare un gatto che dorme e sentirti teso." - Jane Pauley',
+  '"La frase \'gatto domestico\' è un ossimoro." - George Will',
+  '"Un gatto porta ad un altro." - Ernest Hemingway',
+]
+
+/** @type {Record<string, string[]> } */
+const LANGUAGE_MAP = {
+  en: CAT_QUOTES,
+  it: FRASI_GATTO,
+}
+
+/**
+ * @param {string | null} [language]
  * @returns {Quote}
  */
-function findCatQuote() {
-  const index = Math.floor(Math.random() * CAT_QUOTES.length)
-  const quote = CAT_QUOTES[index]
-  return { id: `item-${index}`, value: quote }
+function findCatQuote(language) {
+  language = language || 'en'
+  const quotes = LANGUAGE_MAP[language] || CAT_QUOTES
+  const index = Math.floor(Math.random() * quotes.length)
+  return { id: `item-${index}-${language}`, value: quotes[index] }
 }
 
 /**
@@ -40,11 +59,13 @@ function delay(milliseconds) {
 
 /**
  * Send some data to the client
+ * @param {string} lang
  * @param {import('$lib/events.js').Connection} payload
  */
-async function dumpData({ emit, lock }) {
+async function dumpData(lang, { emit, lock }) {
+  const catQuote = findCatQuote(lang)
+
   for (let i = 0; i < 3; i++) {
-    const catQuote = findCatQuote()
     const stringifiedCatQuote = JSON.stringify(catQuote)
     const { error } = emit('cat-quote', stringifiedCatQuote)
     if (error) {
@@ -61,11 +82,13 @@ async function dumpData({ emit, lock }) {
   }
 }
 
-export function POST({ request }) {
+export function POST({ request, url }) {
   return events({
     request,
     start(connection) {
-      return dumpData(connection)
+      const lang = url.searchParams.get('lang') || 'en'
+
+      return dumpData(lang, connection)
     },
   })
 }

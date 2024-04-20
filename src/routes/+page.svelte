@@ -20,7 +20,7 @@
   <Example />
 {/key}
 
-<h3>A Loaded Cat Quote</h3>
+<h3>An International Cat Quote</h3>
 <span>{$quote?.value ?? ''}</span><br />
 
 <form use:enhance method="post">
